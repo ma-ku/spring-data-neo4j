@@ -286,6 +286,10 @@ public final class NestedRelationshipProcessingStateMachine {
 		}
 	}
 
+	public Collection<RelationshipIdUpdateContext> getRequiredIdUpdates() {
+		return this.requiresIdUpdate;
+	}
+
 	public void updateRelationshipIds(RelationshipIdSupplier idSupplier) {
 		final long stamp = lock.writeLock();
 		try {

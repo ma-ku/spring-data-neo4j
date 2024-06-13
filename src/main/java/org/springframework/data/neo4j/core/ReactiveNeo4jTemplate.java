@@ -85,6 +85,7 @@ import reactor.util.function.Tuple2;
 import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -620,7 +621,6 @@ public final class ReactiveNeo4jTemplate implements
 							Neo4jPersistentProperty idProperty = entityMetaData.getRequiredIdProperty();
 							Object id = convertIdValues(idProperty, propertyAccessor.getProperty(idProperty));
 							String internalId = idToInternalIdMapping.get(id);
-							System.out.println("process relations for " + internalId);
 							return processRelations(entityMetaData, propertyAccessor, t.getT2(),
 								ctx.get("stateMachine"),
 								TemplateSupport.computeIncludePropertyPredicate(pps, entityMetaData));
@@ -1045,12 +1045,14 @@ public final class ReactiveNeo4jTemplate implements
 									var update = true;
 									if (!relationshipDescription.isDynamic() && relationshipDescription.hasRelationshipProperties()) {
 										var hlp = ((MappingSupport.RelationshipPropertiesWithEntityHolder) relatedValueToStore);
-										var hasProcessedRelationshipEntity = stateMachine.hasProcessedRelationshipEntity(targetPropertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
+										var hasProcessedRelationshipEntity = stateMachine.hasProcessedRelationshipEntity(parentPropertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
 										if (hasProcessedRelationshipEntity) {
 											stateMachine.requireIdUpdate(sourceEntity, relationshipDescription, canUseElementId, fromId, relatedInternalId, relationshipContext, relatedValueToStore, idProperty);
 											update = false;
+											System.out.println("no update1");
 										} else {
-											stateMachine.storeProcessRelationshipEntity(hlp, targetPropertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
+											stateMachine.storeProcessRelationshipEntity(hlp, parentPropertyAccessor.getBean(), hlp.getRelatedEntity(), relationshipContext.getRelationship());
+											System.out.println("update1");
 										}
 									}
 									List<Object> rows = new ArrayList<>();
@@ -1118,7 +1120,7 @@ public final class ReactiveNeo4jTemplate implements
 		Mono<T> deleteAndThanCreateANew = (Mono<T>) Flux.concat(relationshipDeleteMonos)
 				.thenMany(Flux.concat(relationshipCreationCreations))
 				.doOnNext(objects -> objects.applyFinalResultToOwner(parentPropertyAccessor))
-				.doOnNext(objects -> stateMachine.updateRelationshipIds(this::getRelationshipId))
+				.doOnNext(objects -> )
 				.checkpoint()
 				.then(Mono.fromSupplier(parentPropertyAccessor::getBean));
 		return deleteAndThanCreateANew;
@@ -1135,7 +1137,7 @@ public final class ReactiveNeo4jTemplate implements
 				.fetchAs(Object.class)
 				.mappedBy((t, r) -> IdentitySupport.mapperForRelatedIdValues(idProperty).apply(r))
 				.one()
-				.blockOptional();
+				.blockOptional(Duration.ofSeconds(2));
 	}
 
 	// The pendant to {@link #saveRelatedNode(Object, Neo4jPersistentEntity, PropertyFilter, PropertyFilter.RelaxedPropertyPath)}
