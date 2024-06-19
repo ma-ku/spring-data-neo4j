@@ -114,12 +114,12 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 		boolean dynamicAssociation = this.isDynamicAssociation();
 
-		Neo4jPersistentEntity<?> relationshipPropertiesClass = null;
+		Neo4jPersistentEntity<?> relationshipPropertiesEntity = null;
 
 		if (this.hasActualTypeAnnotation(RelationshipProperties.class)) {
 			Class<?> type = getRelationshipPropertiesTargetType(getActualType());
 			obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(type)).get();
-			relationshipPropertiesClass = this.mappingContext.addPersistentEntity(TypeInformation.of(getActualType())).get();
+			relationshipPropertiesEntity = this.mappingContext.addPersistentEntity(TypeInformation.of(getActualType())).get();
 		} else {
 			Class<?> associationTargetType = this.getAssociationTargetType();
 			obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(associationTargetType)).orElse(null);
@@ -138,11 +138,11 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 				if (relationshipPropertiesCollection) {
 					Class<?> type = getRelationshipPropertiesTargetType(mapValueType.getActualType().getType());
 					obverseOwner = this.mappingContext.addPersistentEntity(TypeInformation.of(type)).get();
-					relationshipPropertiesClass = this.mappingContext
+					relationshipPropertiesEntity = this.mappingContext
 							.addPersistentEntity(mapValueType.getComponentType()).get();
 
 				} else if (relationshipPropertiesScalar) {
-					relationshipPropertiesClass = this.mappingContext.addPersistentEntity(mapValueType.getComponentType()).get();
+					relationshipPropertiesEntity = this.mappingContext.addPersistentEntity(mapValueType.getComponentType()).get();
 				}
 			}
 		}
@@ -169,7 +169,7 @@ final class DefaultNeo4jPersistentProperty extends AnnotationBasedPersistentProp
 
 		DefaultRelationshipDescription relationshipDescription = new DefaultRelationshipDescription(this,
 				obverseRelationshipDescription.orElse(null), type, dynamicAssociation, (NodeDescription<?>) getOwner(),
-				this.getName(), obverseOwner, direction, relationshipPropertiesClass, relationship == null || relationship.cascadeUpdates());
+				this.getName(), obverseOwner, direction, relationshipPropertiesEntity, relationship == null || relationship.cascadeUpdates());
 
 		// Update the previous found, if any, relationship with the newly created one as its counterpart.
 		obverseRelationshipDescription

@@ -622,6 +622,9 @@ class ReactiveIssuesIT extends TestBase {
 		to1.items.add(t2);
 
 		to1 = toRepository.save(to1).block();
+		System.out.println();
+		System.out.println(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;");
+		System.out.println();
 
 		var from1 = new BugFrom("F1", "F1<-T1", to1);
 		to1.relatedBugs.add(new OutgoingBugRelationship(from1.reli.comment, from1));
@@ -633,7 +636,7 @@ class ReactiveIssuesIT extends TestBase {
 		to1.relatedBugs.add(new OutgoingBugRelationship(from3.reli.comment, from3));
 
 		// See above
-		fromRepository.saveAll(List.of(from1, from2, from3));
+		fromRepository.saveAll(List.of(from1, from2, from3)).collectList().block();
 
 		assertGH2906Graph(driver);
 	}

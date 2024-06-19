@@ -134,7 +134,7 @@ public final class NestedRelationshipProcessingStateMachine {
 		Object source, Object target, RelationshipDescription relationshipDescription) {
 	}
 
-	private record RelationshipIdUpdateContext(Statement cypher, Object fromId, Object toId,
+	public record RelationshipIdUpdateContext(Statement cypher, Object fromId, Object toId,
 		NestedRelationshipContext relationshipContext,
 		Object relatedValueToStore, Neo4jPersistentProperty idProperty) {
 	}
@@ -272,15 +272,17 @@ public final class NestedRelationshipProcessingStateMachine {
 		}
 	}
 
-	public void requireIdUpdate(Neo4jPersistentEntity<?> sourceEntity, RelationshipDescription relationshipDescription, boolean canUseElementId,
-	                            Object fromId, Object toId, NestedRelationshipContext relationshipContext, Object relatedValueToStore, Neo4jPersistentProperty idProperty) {
+	public RelationshipIdUpdateContext requireIdUpdate(Neo4jPersistentEntity<?> sourceEntity, RelationshipDescription relationshipDescription, boolean canUseElementId,
+													   Object fromId, Object toId, NestedRelationshipContext relationshipContext, Object relatedValueToStore, Neo4jPersistentProperty idProperty) {
 
 		Statement relationshipCreationQuery = CypherGenerator.INSTANCE.prepareSaveOfRelationshipWithProperties(
 				sourceEntity, relationshipDescription, false,
 				null, canUseElementId, true);
 		final long stamp = lock.writeLock();
 		try {
-			this.requiresIdUpdate.add(new RelationshipIdUpdateContext(relationshipCreationQuery, fromId, toId, relationshipContext, relatedValueToStore, idProperty));
+			RelationshipIdUpdateContext e = new RelationshipIdUpdateContext(relationshipCreationQuery, fromId, toId, relationshipContext, relatedValueToStore, idProperty);
+			this.requiresIdUpdate.add(e);
+			return e;
 		} finally {
 			lock.unlock(stamp);
 		}
