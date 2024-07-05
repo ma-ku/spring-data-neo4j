@@ -169,6 +169,8 @@ import org.springframework.data.neo4j.integration.issues.gh2906.BugTargetContain
 import org.springframework.data.neo4j.integration.issues.gh2906.FromRepository;
 import org.springframework.data.neo4j.integration.issues.gh2906.OutgoingBugRelationship;
 import org.springframework.data.neo4j.integration.issues.gh2906.ToRepository;
+import org.springframework.data.neo4j.integration.issues.gh2918.ConditionNode;
+import org.springframework.data.neo4j.integration.issues.gh2918.ConditionRepository;
 import org.springframework.data.neo4j.integration.issues.qbe.A;
 import org.springframework.data.neo4j.integration.issues.qbe.ARepository;
 import org.springframework.data.neo4j.integration.issues.qbe.B;
@@ -1557,6 +1559,16 @@ class IssuesIT extends TestBase {
 				});
 	}
 
+	@Test
+	@Tag("GH-2918")
+	void loadCycleFreeWithInAndOutgoingRelationship (@Autowired ConditionRepository conditionRepository, @Autowired Driver driver) {
+
+		var conditionSaved = conditionRepository.save(new ConditionNode());
+		
+		// It will never execute any Cypher as the statement preparation will already fail.
+		var conditionLoaded = conditionRepository.findById(conditionSaved.uuid);
+	}
+	
 	@Configuration
 	@EnableTransactionManagement
 	@EnableNeo4jRepositories(namedQueriesLocation = "more-custom-queries.properties")
